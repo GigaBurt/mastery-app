@@ -4,6 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mastery - Time Tracking App</title>
+    <link rel="manifest" href="data:application/json,{
+        'name': 'Mastery - Time Tracker',
+        'short_name': 'Mastery',
+        'description': 'Track your 10,000 hours to mastery',
+        'start_url': '/',
+        'display': 'standalone',
+        'background_color': '#0f172a',
+        'theme_color': '#8b5cf6',
+        'icons': [
+            {
+                'src': 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" style=\"stop-color:%238b5cf6;stop-opacity:1\" /><stop offset=\"100%\" style=\"stop-color:%23ec4899;stop-opacity:1\" /></linearGradient></defs><rect width=\"100\" height=\"100\" rx=\"20\" fill=\"url(%23grad)\"/><text x=\"50\" y=\"65\" font-family=\"Arial, sans-serif\" font-size=\"60\" fill=\"white\" text-anchor=\"middle\">🏆</text></svg>',
+                'sizes': '192x192',
+                'type': 'image/svg+xml'
+            },
+            {
+                'src': 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" style=\"stop-color:%238b5cf6;stop-opacity:1\" /><stop offset=\"100%\" style=\"stop-color:%23ec4899;stop-opacity:1\" /></linearGradient></defs><rect width=\"100\" height=\"100\" rx=\"20\" fill=\"url(%23grad)\"/><text x=\"50\" y=\"65\" font-family=\"Arial, sans-serif\" font-size=\"60\" fill=\"white\" text-anchor=\"middle\">🏆</text></svg>',
+                'sizes': '512x512',
+                'type': 'image/svg+xml'
+            }
+        ]
+    }">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mastery">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%238b5cf6;stop-opacity:1' /><stop offset='100%' style='stop-color:%23ec4899;stop-opacity:1' /></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23grad)'/><text x='50' y='65' font-family='Arial, sans-serif' font-size='60' fill='white' text-anchor='middle'>🏆</text></svg>">
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -16,263 +46,810 @@
             background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
             color: white;
             min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
         
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
+        #root {
+            min-height: 100vh;
+            min-height: 100dvh;
         }
         
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
+        /* iOS-specific PWA styles */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
         }
         
-        .logo {
-            width: 60px;
-            height: 60px;
+        /* Install prompt styles */
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
             background: linear-gradient(135deg, #8b5cf6, #ec4899);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            margin: 0 auto 20px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
         }
         
-        h1 {
-            font-size: 36px;
-            font-weight: bold;
-            background: linear-gradient(135deg, #a855f7, #ec4899);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
-        .subtitle {
-            color: #9ca3af;
-            font-size: 18px;
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
-        .test-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 30px;
-            margin: 30px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-        }
-        
-        .success-message {
-            background: linear-gradient(135deg, #10b981, #059669);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
+        .install-prompt-text {
+            margin-bottom: 12px;
             font-weight: 600;
         }
         
-        .button {
-            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+        .install-prompt-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .install-btn {
+            flex: 1;
+            padding: 12px;
             border: none;
-            border-radius: 12px;
-            padding: 15px 30px;
-            color: white;
-            font-size: 16px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            margin: 10px;
-            transition: transform 0.2s;
+            transition: all 0.2s;
         }
         
-        .button:hover {
-            transform: scale(1.05);
+        .install-btn.primary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
         }
         
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
+        .install-btn.secondary {
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
         }
         
-        .feature {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
+        .install-btn:active {
+            transform: scale(0.95);
         }
         
-        .feature-icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-        }
-        
-        .install-prompt {
-            background: linear-gradient(135deg, #f59e0b, #f97316);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 30px 0;
-            text-align: center;
-        }
-        
-        @media (max-width: 600px) {
-            .container {
-                padding: 15px;
-            }
-            
-            h1 {
-                font-size: 28px;
-            }
+        /* Notification permission prompt */
+        .notification-prompt {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideDown 0.3s ease-out;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">🏆</div>
-            <h1>Mastery</h1>
-            <p class="subtitle">Track your 10,000 hours to mastery</p>
-        </div>
-        
-        <div class="success-message">
-            🎉 Congratulations! Your app is successfully deployed and working!
-        </div>
-        
-        <div class="test-section">
-            <h2>🚀 Deployment Successful!</h2>
-            <p>Your Mastery time tracking app is now live on the internet!</p>
-            <button class="button" onclick="showFullApp()">Launch Full App</button>
-        </div>
-        
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">📱</div>
-                <h3>Mobile Ready</h3>
-                <p>Install on iPhone as PWA</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔔</div>
-                <h3>Notifications</h3>
-                <p>Get alerts for level-ups</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">⏰</div>
-                <h3>Background Timers</h3>
-                <p>Continue tracking offline</p>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🏆</div>
-                <h3>Rank System</h3>
-                <p>Novice to Master progression</p>
-            </div>
-        </div>
-        
-        <div class="install-prompt" id="installPrompt" style="display: none;">
-            <h3>📱 Install This App</h3>
-            <p>Add to your home screen for the best experience!</p>
-            <button class="button" onclick="installApp()">Install Now</button>
-        </div>
-        
-        <div class="test-section">
-            <h3>🧪 Quick Tests</h3>
-            <button class="button" onclick="testNotification()">Test Notification</button>
-            <button class="button" onclick="testVibration()">Test Vibration</button>
-            <button class="button" onclick="testStorage()">Test Storage</button>
-            <div id="testResults" style="margin-top: 20px;"></div>
-        </div>
-    </div>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-    <script>
-        // Test if everything is working
-        function showFullApp() {
-            document.body.innerHTML = `
-                <div style="text-align: center; padding: 50px;">
-                    <div style="font-size: 60px; margin-bottom: 20px;">🚧</div>
-                    <h2>Full App Loading...</h2>
-                    <p>The deployment is working! Now let's get the full app loaded.</p>
-                    <p style="margin-top: 20px; color: #10b981;">✅ HTML Loading: Success</p>
-                    <p style="color: #10b981;">✅ CSS Styling: Success</p>
-                    <p style="color: #10b981;">✅ JavaScript: Success</p>
+        const TASK_ICONS = {
+            BookOpen: '📚', Code: '💻', Dumbbell: '💪', Palette: '🎨', Music: '🎵', 
+            Camera: '📷', Coffee: '☕', Target: '🎯', Zap: '⚡', Heart: '❤️', 
+            Brain: '🧠', Clock: '⏰', Trophy: '🏆', Calendar: '📅', Star: '⭐'
+        };
+
+        const RANK_SYSTEM = [
+            { min: 0, max: 10, name: 'Novice', color: '#6b7280' },
+            { min: 10, max: 50, name: 'Apprentice', color: '#3b82f6' },
+            { min: 50, max: 100, name: 'Journeyman', color: '#10b981' },
+            { min: 100, max: 250, name: 'Expert', color: '#8b5cf6' },
+            { min: 250, max: 500, name: 'Professional', color: '#f59e0b' },
+            { min: 500, max: 1000, name: 'Veteran', color: '#ef4444' },
+            { min: 1000, max: 2500, name: 'Elite', color: '#ec4899' },
+            { min: 2500, max: 5000, name: 'Champion', color: '#eab308' },
+            { min: 5000, max: 10000, name: 'Grandmaster', color: '#6366f1' },
+            { min: 10000, max: Infinity, name: 'Master', color: '#fbbf24' }
+        ];
+
+        // PWA Install Prompt Component
+        const InstallPrompt = ({ onInstall, onDismiss }) => {
+            return (
+                <div className="install-prompt">
+                    <div className="install-prompt-text">
+                        📱 Install Mastery app for the best experience!
+                    </div>
+                    <div className="install-prompt-buttons">
+                        <button className="install-btn secondary" onClick={onDismiss}>
+                            Maybe Later
+                        </button>
+                        <button className="install-btn primary" onClick={onInstall}>
+                            Install App
+                        </button>
+                    </div>
                 </div>
-            `;
+            );
+        };
+
+        // Notification Permission Prompt
+        const NotificationPrompt = ({ onEnable, onDismiss }) => {
+            return (
+                <div className="notification-prompt">
+                    <div className="install-prompt-text">
+                        🔔 Enable notifications to get level-up alerts!
+                    </div>
+                    <div className="install-prompt-buttons">
+                        <button className="install-btn secondary" onClick={onDismiss}>
+                            Skip
+                        </button>
+                        <button className="install-btn primary" onClick={onEnable}>
+                            Enable
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const MasteryApp = () => {
+            const [tasks, setTasks] = useState([]);
+            const [activeTaskId, setActiveTaskId] = useState(null);
+            const [showAddTask, setShowAddTask] = useState(false);
+            const [newTaskName, setNewTaskName] = useState('');
+            const [selectedIcon, setSelectedIcon] = useState('Clock');
+            const [notification, setNotification] = useState(null);
+            const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+            const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+            const [deferredPrompt, setDeferredPrompt] = useState(null);
+            const [isInstalled, setIsInstalled] = useState(false);
             
-            setTimeout(() => {
-                alert('🎉 Perfect! Your deployment is working. Now we can update it with the full app!');
-            }, 2000);
-        }
-        
-        function testNotification() {
-            if ('Notification' in window) {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        new Notification('🎉 Test Successful!', {
-                            body: 'Notifications are working!',
-                            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">🏆</text></svg>'
-                        });
-                        updateTestResults('✅ Notifications: Working');
-                    } else {
-                        updateTestResults('❌ Notifications: Permission denied');
-                    }
-                });
-            } else {
-                updateTestResults('❌ Notifications: Not supported');
-            }
-        }
-        
-        function testVibration() {
-            if ('vibrate' in navigator) {
-                navigator.vibrate([200, 100, 200]);
-                updateTestResults('✅ Vibration: Working');
-            } else {
-                updateTestResults('❌ Vibration: Not supported');
-            }
-        }
-        
-        function testStorage() {
-            try {
-                localStorage.setItem('test', 'working');
-                const result = localStorage.getItem('test');
-                localStorage.removeItem('test');
-                if (result === 'working') {
-                    updateTestResults('✅ Storage: Working');
-                } else {
-                    updateTestResults('❌ Storage: Failed');
+            const intervalRef = useRef(null);
+
+            // PWA Installation Logic
+            useEffect(() => {
+                // Check if already installed
+                if (window.matchMedia('(display-mode: standalone)').matches) {
+                    setIsInstalled(true);
                 }
-            } catch (e) {
-                updateTestResults('❌ Storage: Error - ' + e.message);
-            }
-        }
-        
-        function updateTestResults(result) {
-            const resultsDiv = document.getElementById('testResults');
-            resultsDiv.innerHTML += '<div style="margin: 5px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">' + result + '</div>';
-        }
-        
-        // PWA Install prompt
-        let deferredPrompt;
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installPrompt').style.display = 'block';
-        });
-        
-        function installApp() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        console.log('User accepted the install prompt');
+
+                // Listen for install prompt
+                const handleBeforeInstallPrompt = (e) => {
+                    e.preventDefault();
+                    setDeferredPrompt(e);
+                    
+                    // Show install prompt after 3 seconds if not installed
+                    setTimeout(() => {
+                        if (!isInstalled) {
+                            setShowInstallPrompt(true);
+                        }
+                    }, 3000);
+                };
+
+                window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+                
+                // Check for notification support
+                if ('Notification' in window && Notification.permission === 'default') {
+                    setTimeout(() => {
+                        setShowNotificationPrompt(true);
+                    }, 5000);
+                }
+
+                return () => {
+                    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+                };
+            }, [isInstalled]);
+
+            // Service Worker Registration
+            useEffect(() => {
+                if ('serviceWorker' in navigator) {
+                    const swCode = `
+                        const CACHE_NAME = 'mastery-app-v1';
+                        self.addEventListener('install', event => {
+                            console.log('Service worker installed');
+                        });
+                        self.addEventListener('fetch', event => {
+                            event.respondWith(fetch(event.request));
+                        });
+                    `;
+                    
+                    const blob = new Blob([swCode], { type: 'application/javascript' });
+                    const swUrl = URL.createObjectURL(blob);
+                    
+                    navigator.serviceWorker.register(swUrl)
+                        .then(registration => console.log('SW registered'))
+                        .catch(error => console.log('SW registration failed'));
+                }
+            }, []);
+
+            // Haptic Feedback for PWA
+            const triggerHaptic = (type = 'light') => {
+                if ('vibrate' in navigator) {
+                    const patterns = {
+                        light: [10],
+                        medium: [20],
+                        heavy: [30],
+                        success: [20, 50, 20]
+                    };
+                    navigator.vibrate(patterns[type] || patterns.light);
+                }
+            };
+
+            // Install App
+            const handleInstall = async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        setIsInstalled(true);
+                        triggerHaptic('success');
                     }
-                    deferredPrompt = null;
-                });
-            }
-        }
-        
-        // Show success message
-        console.log('🎉 Mastery app loaded successfully!');
+                    setDeferredPrompt(null);
+                }
+                setShowInstallPrompt(false);
+            };
+
+            // Enable Notifications
+            const enableNotifications = async () => {
+                if ('Notification' in window) {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        triggerHaptic('success');
+                        new Notification('🎉 Notifications enabled!', {
+                            body: 'You\'ll now get alerts when you level up!',
+                        });
+                    }
+                }
+                setShowNotificationPrompt(false);
+            };
+
+            // Send Push Notification
+            const sendNotification = (title, body) => {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification(title, {
+                        body,
+                        tag: 'level-up',
+                        requireInteraction: true
+                    });
+                }
+            };
+
+            // Load data on component mount
+            useEffect(() => {
+                const savedTasks = JSON.parse(localStorage.getItem('masteryTasks') || '[]');
+                setTasks(savedTasks);
+                
+                // Check for active task and resume
+                const activeTask = savedTasks.find(task => task.isActive);
+                if (activeTask) {
+                    setActiveTaskId(activeTask.id);
+                }
+            }, []);
+
+            // Save data whenever tasks change
+            useEffect(() => {
+                localStorage.setItem('masteryTasks', JSON.stringify(tasks));
+            }, [tasks]);
+
+            // Timer logic with background support
+            useEffect(() => {
+                if (activeTaskId) {
+                    // Mark task as active
+                    setTasks(prevTasks => 
+                        prevTasks.map(task => ({
+                            ...task,
+                            isActive: task.id === activeTaskId,
+                            lastActiveTime: task.id === activeTaskId ? Date.now() : task.lastActiveTime
+                        }))
+                    );
+
+                    intervalRef.current = setInterval(() => {
+                        setTasks(prevTasks => 
+                            prevTasks.map(task => {
+                                if (task.id === activeTaskId) {
+                                    const oldHours = getHours(task.totalTime);
+                                    const newTime = task.totalTime + 1;
+                                    const newHours = getHours(newTime);
+                                    
+                                    // Check for level up
+                                    if (Math.floor(newHours / 10) > Math.floor(oldHours / 10)) {
+                                        const rank = getRank(newHours);
+                                        showLevelUpNotification(task.name, rank.name);
+                                        sendNotification('🎉 Level Up!', `${task.name}: You've reached ${rank.name}!`);
+                                    }
+                                    
+                                    return { ...task, totalTime: newTime, lastActiveTime: Date.now() };
+                                }
+                                return task;
+                            })
+                        );
+                    }, 1000);
+                } else {
+                    clearInterval(intervalRef.current);
+                    // Mark all tasks as inactive
+                    setTasks(prevTasks => 
+                        prevTasks.map(task => ({ ...task, isActive: false }))
+                    );
+                }
+
+                return () => clearInterval(intervalRef.current);
+            }, [activeTaskId]);
+
+            // Handle page visibility changes (background/foreground)
+            useEffect(() => {
+                const handleVisibilityChange = () => {
+                    if (document.hidden && activeTaskId) {
+                        // Store the time when going to background
+                        const currentTime = Date.now();
+                        localStorage.setItem('backgroundTime', currentTime.toString());
+                        localStorage.setItem('backgroundTaskId', activeTaskId.toString());
+                    } else if (!document.hidden) {
+                        // Calculate time spent in background
+                        const backgroundTime = localStorage.getItem('backgroundTime');
+                        const backgroundTaskId = localStorage.getItem('backgroundTaskId');
+                        
+                        if (backgroundTime && backgroundTaskId && activeTaskId === parseInt(backgroundTaskId)) {
+                            const timeSpent = Math.floor((Date.now() - parseInt(backgroundTime)) / 1000);
+                            if (timeSpent > 0) {
+                                setTasks(prevTasks => 
+                                    prevTasks.map(task => 
+                                        task.id === parseInt(backgroundTaskId)
+                                            ? { ...task, totalTime: task.totalTime + timeSpent }
+                                            : task
+                                    )
+                                );
+                            }
+                        }
+                        
+                        localStorage.removeItem('backgroundTime');
+                        localStorage.removeItem('backgroundTaskId');
+                    }
+                };
+
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+            }, [activeTaskId]);
+
+            const formatTime = (seconds) => {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            const getHours = (seconds) => Math.floor(seconds / 3600);
+
+            const getRank = (hours) => {
+                for (let i = RANK_SYSTEM.length - 1; i >= 0; i--) {
+                    if (hours >= RANK_SYSTEM[i].min) {
+                        const level = Math.floor(hours / 10) + 1;
+                        const rankName = RANK_SYSTEM[i].name;
+                        return { 
+                            name: hours >= 10000 ? 'Master' : `${rankName} ${Math.min(level, 1000)}`,
+                            color: RANK_SYSTEM[i].color
+                        };
+                    }
+                }
+                return { name: 'Novice 1', color: '#6b7280' };
+            };
+
+            const getTimeSinceCreated = (createdDate) => {
+                const now = new Date();
+                const created = new Date(createdDate);
+                const diffTime = Math.abs(now - created);
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return 'Today';
+                if (diffDays === 1) return '1 day ago';
+                if (diffDays < 30) return `${diffDays} days ago`;
+                if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+                return `${Math.floor(diffDays / 365)} years ago`;
+            };
+
+            const showLevelUpNotification = (taskName, rankName) => {
+                triggerHaptic('success');
+                setNotification(`🎉 Level Up! ${taskName}: ${rankName}!`);
+                setTimeout(() => setNotification(null), 4000);
+            };
+
+            const addTask = () => {
+                if (newTaskName.trim()) {
+                    const newTask = {
+                        id: Date.now(),
+                        name: newTaskName.trim(),
+                        icon: selectedIcon,
+                        totalTime: 0,
+                        createdDate: new Date().toISOString(),
+                        isActive: false
+                    };
+                    setTasks([...tasks, newTask]);
+                    setNewTaskName('');
+                    setShowAddTask(false);
+                    setSelectedIcon('Clock');
+                    triggerHaptic('light');
+                }
+            };
+
+            const toggleTimer = (taskId) => {
+                triggerHaptic('medium');
+                
+                if (activeTaskId === taskId) {
+                    setActiveTaskId(null);
+                } else {
+                    setActiveTaskId(taskId);
+                }
+            };
+
+            const deleteTask = (taskId) => {
+                if (confirm('Are you sure you want to delete this task? All progress will be lost.')) {
+                    setTasks(tasks.filter(task => task.id !== taskId));
+                    if (activeTaskId === taskId) {
+                        setActiveTaskId(null);
+                    }
+                    triggerHaptic('light');
+                }
+            };
+
+            const getProgressToNextLevel = (hours) => {
+                const currentLevel = Math.floor(hours / 10);
+                const nextLevelHours = (currentLevel + 1) * 10;
+                const progressHours = hours - (currentLevel * 10);
+                return (progressHours / 10) * 100;
+            };
+
+            return (
+                <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%)', color: 'white' }}>
+                    {/* Install Prompt */}
+                    {showInstallPrompt && !isInstalled && (
+                        <InstallPrompt 
+                            onInstall={handleInstall}
+                            onDismiss={() => setShowInstallPrompt(false)}
+                        />
+                    )}
+
+                    {/* Notification Prompt */}
+                    {showNotificationPrompt && (
+                        <NotificationPrompt 
+                            onEnable={enableNotifications}
+                            onDismiss={() => setShowNotificationPrompt(false)}
+                        />
+                    )}
+
+                    {/* Header */}
+                    <div style={{ 
+                        background: 'rgba(0, 0, 0, 0.2)', 
+                        backdropFilter: 'blur(10px)', 
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)', 
+                        padding: '16px',
+                        position: 'sticky',
+                        top: 0,
+                        zIndex: 100
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ 
+                                    width: '40px', 
+                                    height: '40px', 
+                                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', 
+                                    borderRadius: '12px', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    fontSize: '20px'
+                                }}>
+                                    🏆
+                                </div>
+                                <div>
+                                    <h1 style={{ 
+                                        fontSize: '24px', 
+                                        fontWeight: 'bold', 
+                                        background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        margin: 0
+                                    }}>
+                                        Mastery
+                                    </h1>
+                                    <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+                                        Track your 10,000 hours
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowAddTask(true)}
+                                style={{ 
+                                    width: '48px', 
+                                    height: '48px', 
+                                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', 
+                                    border: 'none',
+                                    borderRadius: '12px', 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)',
+                                    transition: 'all 0.2s',
+                                    fontSize: '24px'
+                                }}
+                                onTouchStart={(e) => e.target.style.transform = 'scale(0.95)'}
+                                onTouchEnd={(e) => e.target.style.transform = 'scale(1)'}
+                            >
+                                ➕
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Notification */}
+                    {notification && (
+                        <div style={{
+                            position: 'fixed',
+                            top: '100px',
+                            left: '16px',
+                            right: '16px',
+                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            padding: '16px',
+                            borderRadius: '12px',
+                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+                            zIndex: 1000,
+                            animation: 'slideDown 0.3s ease-out'
+                        }}>
+                            <p style={{ textAlign: 'center', fontWeight: '600', margin: 0 }}>{notification}</p>
+                        </div>
+                    )}
+
+                    {/* Tasks List */}
+                    <div style={{ padding: '16px', paddingBottom: '100px' }}>
+                        {tasks.length === 0 ? (
+                            <div style={{ textAlign: 'center', paddingTop: '80px', paddingBottom: '80px' }}>
+                                <div style={{ fontSize: '64px', marginBottom: '16px' }}>⏰</div>
+                                <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#9ca3af', marginBottom: '8px' }}>No Tasks Yet</h3>
+                                <p style={{ color: '#6b7280' }}>Add your first task to start your journey to mastery!</p>
+                            </div>
+                        ) : (
+                            tasks.map(task => {
+                                const hours = getHours(task.totalTime);
+                                const rank = getRank(hours);
+                                const progress = getProgressToNextLevel(hours);
+                                const isActive = activeTaskId === task.id;
+
+                                return (
+                                    <div key={task.id} style={{
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        backdropFilter: 'blur(10px)',
+                                        borderRadius: '16px',
+                                        padding: '24px',
+                                        marginBottom: '16px',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                <div style={{
+                                                    width: '48px',
+                                                    height: '48px',
+                                                    background: isActive ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(139, 92, 246, 0.2)',
+                                                    borderRadius: '12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: '24px'
+                                                }}>
+                                                    {TASK_ICONS[task.icon]}
+                                                </div>
+                                                <div>
+                                                    <h3 style={{ fontSize: '18px', fontWeight: '600', margin: 0, marginBottom: '4px' }}>{task.name}</h3>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: '#9ca3af' }}>
+                                                        <span>📅</span>
+                                                        <span>Started {getTimeSinceCreated(task.createdDate)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => deleteTask(task.id)}
+                                                style={{
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    color: '#9ca3af',
+                                                    fontSize: '20px',
+                                                    cursor: 'pointer',
+                                                    padding: '4px'
+                                                }}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                            <span style={{ fontSize: '32px', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                                                {formatTime(task.totalTime)}
+                                            </span>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <div style={{ fontSize: '14px', fontWeight: '600', color: rank.color }}>
+                                                    {rank.name}
+                                                </div>
+                                                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                                    {hours.toLocaleString()}/10,000 hours
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Progress Bar */}
+                                        <div style={{ width: '100%', height: '8px', background: '#374151', borderRadius: '4px', marginBottom: '12px', overflow: 'hidden' }}>
+                                            <div 
+                                                style={{
+                                                    width: `${Math.min(progress, 100)}%`,
+                                                    height: '100%',
+                                                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                                                    borderRadius: '4px',
+                                                    transition: 'width 0.3s ease'
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '12px', color: '#9ca3af' }}>
+                                                {(10 - (hours % 10)).toFixed(1)}h to next level
+                                            </span>
+                                            <button
+                                                onClick={() => toggleTimer(task.id)}
+                                                style={{
+                                                    width: '48px',
+                                                    height: '48px',
+                                                    background: isActive ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #10b981, #059669)',
+                                                    border: 'none',
+                                                    borderRadius: '12px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    cursor: 'pointer',
+                                                    boxShadow: `0 4px 15px ${isActive ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
+                                                    transition: 'all 0.2s',
+                                                    fontSize: '20px'
+                                                }}
+                                                onTouchStart={(e) => e.target.style.transform = 'scale(0.95)'}
+                                                onTouchEnd={(e) => e.target.style.transform = 'scale(1)'}
+                                            >
+                                                {isActive ? '⏸️' : '▶️'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
+                    {/* Add Task Modal */}
+                    {showAddTask && (
+                        <div style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            background: 'rgba(0, 0, 0, 0.5)',
+                            backdropFilter: 'blur(5px)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '16px',
+                            zIndex: 1000
+                        }}>
+                            <div style={{
+                                background: '#1f2937',
+                                borderRadius: '16px',
+                                padding: '24px',
+                                width: '100%',
+                                maxWidth: '400px',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
+                            }}>
+                                <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px', margin: 0 }}>Add New Task</h2>
+                                
+                                <input
+                                    type="text"
+                                    placeholder="Task name..."
+                                    value={newTaskName}
+                                    onChange={(e) => setNewTaskName(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        background: '#374151',
+                                        border: '1px solid #4b5563',
+                                        borderRadius: '12px',
+                                        padding: '16px',
+                                        fontSize: '16px',
+                                        color: 'white',
+                                        marginBottom: '16px',
+                                        outline: 'none',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    autoFocus
+                                />
+
+                                <p style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '12px', margin: 0 }}>Choose an icon:</p>
+                                <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(7, 1fr)',
+                                    gap: '8px',
+                                    marginBottom: '24px'
+                                }}>
+                                    {Object.keys(TASK_ICONS).map(iconKey => (
+                                        <button
+                                            key={iconKey}
+                                            onClick={() => setSelectedIcon(iconKey)}
+                                            style={{
+                                                width: '40px',
+                                                height: '40px',
+                                                background: selectedIcon === iconKey ? '#8b5cf6' : '#374151',
+                                                border: selectedIcon === iconKey ? '2px solid #a855f7' : '2px solid transparent',
+                                                borderRadius: '8px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s',
+                                                fontSize: '20px'
+                                            }}
+                                        >
+                                            {TASK_ICONS[iconKey]}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '12px' }}>
+                                    <button
+                                        onClick={() => setShowAddTask(false)}
+                                        style={{
+                                            flex: 1,
+                                            background: '#374151',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            padding: '16px',
+                                            color: 'white',
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={addTask}
+                                        disabled={!newTaskName.trim()}
+                                        style={{
+                                            flex: 1,
+                                            background: !newTaskName.trim() ? '#6b7280' : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            padding: '16px',
+                                            color: 'white',
+                                            fontSize: '16px',
+                                            fontWeight: '600',
+                                            cursor: !newTaskName.trim() ? 'not-allowed' : 'pointer',
+                                            opacity: !newTaskName.trim() ? 0.5 : 1,
+                                            transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        Add Task
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<MasteryApp />, document.getElementById('root'));
     </script>
 </body>
 </html>
