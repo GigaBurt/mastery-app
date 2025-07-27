@@ -4,35 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mastery - Time Tracking App</title>
-    <link rel="manifest" href="data:application/json,{
-        'name': 'Mastery - Time Tracker',
-        'short_name': 'Mastery',
-        'description': 'Track your 10,000 hours to mastery',
-        'start_url': '/',
-        'display': 'standalone',
-        'background_color': '#0f172a',
-        'theme_color': '#8b5cf6',
-        'icons': [
-            {
-                'src': 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" style=\"stop-color:%238b5cf6;stop-opacity:1\" /><stop offset=\"100%\" style=\"stop-color:%23ec4899;stop-opacity:1\" /></linearGradient></defs><rect width=\"100\" height=\"100\" rx=\"20\" fill=\"url(%23grad)\"/><text x=\"50\" y=\"65\" font-family=\"Arial, sans-serif\" font-size=\"60\" fill=\"white\" text-anchor=\"middle\">🏆</text></svg>',
-                'sizes': '192x192',
-                'type': 'image/svg+xml'
-            },
-            {
-                'src': 'data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><linearGradient id=\"grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" style=\"stop-color:%238b5cf6;stop-opacity:1\" /><stop offset=\"100%\" style=\"stop-color:%23ec4899;stop-opacity:1\" /></linearGradient></defs><rect width=\"100\" height=\"100\" rx=\"20\" fill=\"url(%23grad)\"/><text x=\"50\" y=\"65\" font-family=\"Arial, sans-serif\" font-size=\"60\" fill=\"white\" text-anchor=\"middle\">🏆</text></svg>',
-                'sizes': '512x512',
-                'type': 'image/svg+xml'
-            }
-        ]
-    }">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mastery">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%238b5cf6;stop-opacity:1' /><stop offset='100%' style='stop-color:%23ec4899;stop-opacity:1' /></linearGradient></defs><rect width='100' height='100' rx='20' fill='url(%23grad)'/><text x='50' y='65' font-family='Arial, sans-serif' font-size='60' fill='white' text-anchor='middle'>🏆</text></svg>">
-    
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
     <style>
         * {
@@ -46,26 +20,405 @@
             background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
             color: white;
             min-height: 100vh;
-            min-height: 100dvh;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
-        #root {
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
             min-height: 100vh;
-            min-height: 100dvh;
         }
         
-        /* iOS-specific PWA styles */
-        @supports (-webkit-touch-callout: none) {
-            body {
-                padding-top: env(safe-area-inset-top);
-                padding-bottom: env(safe-area-inset-bottom);
-            }
+        /* Header Styles */
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         
-        /* Install prompt styles */
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: #9ca3af;
+            margin: 0;
+        }
+        
+        .add-button {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border: none;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            transition: all 0.2s;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .add-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* Notification Styles */
+        .notification {
+            position: fixed;
+            top: 100px;
+            left: 16px;
+            right: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            text-align: center;
+            font-weight: 600;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 16px;
+            padding-bottom: 100px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 80px 0;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+        
+        .empty-subtitle {
+            color: #6b7280;
+        }
+        
+        /* Task Card Styles */
+        .task-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+        
+        .task-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .task-icon.active {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .task-icon.inactive {
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        .task-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+        
+        .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+        
+        .delete-button {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .delete-button:hover {
+            color: #ef4444;
+        }
+        
+        .task-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .time-display {
+            font-size: 32px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+        
+        .rank-info {
+            text-align: right;
+        }
+        
+        .rank-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .hours-count {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        .progress-container {
+            margin-bottom: 12px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .next-level-text {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        
+        .play-button {
+            width: 48px;
+            height: 48px;
+            border: none;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 20px;
+            color: white;
+        }
+        
+        .play-button.active {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        .play-button.inactive {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .play-button:active {
+            transform: scale(0.95);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #1f2937;
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .task-input {
+            width: 100%;
+            background: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            color: white;
+            margin-bottom: 16px;
+            outline: none;
+        }
+        
+        .task-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        .icon-section-title {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+        
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .icon-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 20px;
+            border: 2px solid transparent;
+        }
+        
+        .icon-option.selected {
+            background: #8b5cf6;
+            border-color: #a855f7;
+        }
+        
+        .icon-option.unselected {
+            background: #374151;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .modal-button {
+            flex: 1;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .cancel-button {
+            background: #374151;
+            color: white;
+        }
+        
+        .add-task-button {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+        }
+        
+        .add-task-button:disabled {
+            background: #6b7280;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Install Prompt */
         .install-prompt {
             position: fixed;
             bottom: 20px;
@@ -81,11 +434,6 @@
         
         @keyframes slideUp {
             from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        @keyframes slideDown {
-            from { transform: translateY(-100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
         
@@ -119,37 +467,81 @@
             color: white;
         }
         
-        .install-btn:active {
-            transform: scale(0.95);
-        }
-        
-        /* Notification permission prompt */
-        .notification-prompt {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            padding: 16px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            animation: slideDown 0.3s ease-out;
+        @media (max-width: 600px) {
+            .container {
+                padding: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">🏆</div>
+                <div>
+                    <h1 class="title">Mastery</h1>
+                    <p class="subtitle">Track your 10,000 hours</p>
+                </div>
+            </div>
+            <button class="add-button" onclick="showAddTaskModal()">➕</button>
+        </div>
 
+        <!-- Notification -->
+        <div id="notification" class="notification hidden"></div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div id="empty-state" class="empty-state">
+                <div class="empty-icon">⏰</div>
+                <h3 class="empty-title">No Tasks Yet</h3>
+                <p class="empty-subtitle">Add your first task to start your journey to mastery!</p>
+            </div>
+            
+            <div id="tasks-container"></div>
+        </div>
+
+        <!-- Install Prompt -->
+        <div id="install-prompt" class="install-prompt hidden">
+            <div class="install-prompt-text">📱 Install Mastery app for the best experience!</div>
+            <div class="install-prompt-buttons">
+                <button class="install-btn secondary" onclick="dismissInstallPrompt()">Maybe Later</button>
+                <button class="install-btn primary" onclick="installApp()">Install App</button>
+            </div>
+        </div>
+
+        <!-- Add Task Modal -->
+        <div id="modal-overlay" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h2 class="modal-title">Add New Task</h2>
+                <input type="text" id="task-input" class="task-input" placeholder="Task name..." />
+                <p class="icon-section-title">Choose an icon:</p>
+                <div class="icon-grid" id="icon-grid"></div>
+                <div class="modal-buttons">
+                    <button class="modal-button cancel-button" onclick="hideAddTaskModal()">Cancel</button>
+                    <button class="modal-button add-task-button" id="add-task-button" onclick="addTask()">Add Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let tasks = [];
+        let activeTaskId = null;
+        let selectedIcon = 'Clock';
+        let intervalId = null;
+        let deferredPrompt = null;
+
+        // Task Icons
         const TASK_ICONS = {
             BookOpen: '📚', Code: '💻', Dumbbell: '💪', Palette: '🎨', Music: '🎵', 
             Camera: '📷', Coffee: '☕', Target: '🎯', Zap: '⚡', Heart: '❤️', 
             Brain: '🧠', Clock: '⏰', Trophy: '🏆', Calendar: '📅', Star: '⭐'
         };
 
+        // Ranking System
         const RANK_SYSTEM = [
             { min: 0, max: 10, name: 'Novice', color: '#6b7280' },
             { min: 10, max: 50, name: 'Apprentice', color: '#3b82f6' },
@@ -163,693 +555,346 @@
             { min: 10000, max: Infinity, name: 'Master', color: '#fbbf24' }
         ];
 
-        // PWA Install Prompt Component
-        const InstallPrompt = ({ onInstall, onDismiss }) => {
-            return (
-                <div className="install-prompt">
-                    <div className="install-prompt-text">
-                        📱 Install Mastery app for the best experience!
-                    </div>
-                    <div className="install-prompt-buttons">
-                        <button className="install-btn secondary" onClick={onDismiss}>
-                            Maybe Later
-                        </button>
-                        <button className="install-btn primary" onClick={onInstall}>
-                            Install App
-                        </button>
-                    </div>
-                </div>
-            );
-        };
+        // Utility Functions
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
 
-        // Notification Permission Prompt
-        const NotificationPrompt = ({ onEnable, onDismiss }) => {
-            return (
-                <div className="notification-prompt">
-                    <div className="install-prompt-text">
-                        🔔 Enable notifications to get level-up alerts!
-                    </div>
-                    <div className="install-prompt-buttons">
-                        <button className="install-btn secondary" onClick={onDismiss}>
-                            Skip
-                        </button>
-                        <button className="install-btn primary" onClick={onEnable}>
-                            Enable
-                        </button>
-                    </div>
-                </div>
-            );
-        };
+        function getHours(seconds) {
+            return Math.floor(seconds / 3600);
+        }
 
-        const MasteryApp = () => {
-            const [tasks, setTasks] = useState([]);
-            const [activeTaskId, setActiveTaskId] = useState(null);
-            const [showAddTask, setShowAddTask] = useState(false);
-            const [newTaskName, setNewTaskName] = useState('');
-            const [selectedIcon, setSelectedIcon] = useState('Clock');
-            const [notification, setNotification] = useState(null);
-            const [showInstallPrompt, setShowInstallPrompt] = useState(false);
-            const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
-            const [deferredPrompt, setDeferredPrompt] = useState(null);
-            const [isInstalled, setIsInstalled] = useState(false);
+        function getRank(hours) {
+            for (let i = RANK_SYSTEM.length - 1; i >= 0; i--) {
+                if (hours >= RANK_SYSTEM[i].min) {
+                    const level = Math.floor(hours / 10) + 1;
+                    const rankName = RANK_SYSTEM[i].name;
+                    return { 
+                        name: hours >= 10000 ? 'Master' : `${rankName} ${Math.min(level, 1000)}`,
+                        color: RANK_SYSTEM[i].color
+                    };
+                }
+            }
+            return { name: 'Novice 1', color: '#6b7280' };
+        }
+
+        function getTimeSinceCreated(createdDate) {
+            const now = new Date();
+            const created = new Date(createdDate);
+            const diffTime = Math.abs(now - created);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
             
-            const intervalRef = useRef(null);
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return '1 day ago';
+            if (diffDays < 30) return `${diffDays} days ago`;
+            if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+            return `${Math.floor(diffDays / 365)} years ago`;
+        }
 
-            // PWA Installation Logic
-            useEffect(() => {
-                // Check if already installed
-                if (window.matchMedia('(display-mode: standalone)').matches) {
-                    setIsInstalled(true);
-                }
+        function getProgressToNextLevel(hours) {
+            const currentLevel = Math.floor(hours / 10);
+            const progressHours = hours - (currentLevel * 10);
+            return (progressHours / 10) * 100;
+        }
 
-                // Listen for install prompt
-                const handleBeforeInstallPrompt = (e) => {
-                    e.preventDefault();
-                    setDeferredPrompt(e);
-                    
-                    // Show install prompt after 3 seconds if not installed
-                    setTimeout(() => {
-                        if (!isInstalled) {
-                            setShowInstallPrompt(true);
-                        }
-                    }, 3000);
+        function triggerHaptic(type = 'light') {
+            if ('vibrate' in navigator) {
+                const patterns = {
+                    light: [10],
+                    medium: [20],
+                    heavy: [30],
+                    success: [20, 50, 20]
                 };
+                navigator.vibrate(patterns[type] || patterns.light);
+            }
+        }
 
-                window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-                
-                // Check for notification support
-                if ('Notification' in window && Notification.permission === 'default') {
-                    setTimeout(() => {
-                        setShowNotificationPrompt(true);
-                    }, 5000);
-                }
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.remove('hidden');
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 4000);
+        }
 
-                return () => {
-                    window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-                };
-            }, [isInstalled]);
+        function sendPushNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, {
+                    body,
+                    tag: 'level-up',
+                    requireInteraction: true
+                });
+            }
+        }
 
-            // Service Worker Registration
-            useEffect(() => {
-                if ('serviceWorker' in navigator) {
-                    const swCode = `
-                        const CACHE_NAME = 'mastery-app-v1';
-                        self.addEventListener('install', event => {
-                            console.log('Service worker installed');
-                        });
-                        self.addEventListener('fetch', event => {
-                            event.respondWith(fetch(event.request));
-                        });
-                    `;
+        // Storage Functions
+        function saveTasks() {
+            localStorage.setItem('masteryTasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const saved = localStorage.getItem('masteryTasks');
+            if (saved) {
+                tasks = JSON.parse(saved);
+                renderTasks();
+            }
+        }
+
+        // Timer Functions
+        function startTimer(taskId) {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+            
+            activeTaskId = taskId;
+            intervalId = setInterval(() => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    const oldHours = getHours(task.totalTime);
+                    task.totalTime += 1;
+                    const newHours = getHours(task.totalTime);
                     
-                    const blob = new Blob([swCode], { type: 'application/javascript' });
-                    const swUrl = URL.createObjectURL(blob);
-                    
-                    navigator.serviceWorker.register(swUrl)
-                        .then(registration => console.log('SW registered'))
-                        .catch(error => console.log('SW registration failed'));
-                }
-            }, []);
-
-            // Haptic Feedback for PWA
-            const triggerHaptic = (type = 'light') => {
-                if ('vibrate' in navigator) {
-                    const patterns = {
-                        light: [10],
-                        medium: [20],
-                        heavy: [30],
-                        success: [20, 50, 20]
-                    };
-                    navigator.vibrate(patterns[type] || patterns.light);
-                }
-            };
-
-            // Install App
-            const handleInstall = async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    if (outcome === 'accepted') {
-                        setIsInstalled(true);
+                    // Check for level up
+                    if (Math.floor(newHours / 10) > Math.floor(oldHours / 10)) {
+                        const rank = getRank(newHours);
+                        showNotification(`🎉 Level Up! ${task.name}: ${rank.name}!`);
+                        sendPushNotification('🎉 Level Up!', `${task.name}: You've reached ${rank.name}!`);
                         triggerHaptic('success');
                     }
-                    setDeferredPrompt(null);
+                    
+                    saveTasks();
+                    renderTasks();
                 }
-                setShowInstallPrompt(false);
-            };
+            }, 1000);
+        }
 
-            // Enable Notifications
-            const enableNotifications = async () => {
-                if ('Notification' in window) {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        triggerHaptic('success');
-                        new Notification('🎉 Notifications enabled!', {
-                            body: 'You\'ll now get alerts when you level up!',
-                        });
-                    }
-                }
-                setShowNotificationPrompt(false);
-            };
+        function stopTimer() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            activeTaskId = null;
+        }
 
-            // Send Push Notification
-            const sendNotification = (title, body) => {
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification(title, {
-                        body,
-                        tag: 'level-up',
-                        requireInteraction: true
-                    });
-                }
-            };
+        function toggleTimer(taskId) {
+            triggerHaptic('medium');
+            
+            if (activeTaskId === taskId) {
+                stopTimer();
+            } else {
+                startTimer(taskId);
+            }
+            renderTasks();
+        }
 
-            // Load data on component mount
-            useEffect(() => {
-                const savedTasks = JSON.parse(localStorage.getItem('masteryTasks') || '[]');
-                setTasks(savedTasks);
-                
-                // Check for active task and resume
-                const activeTask = savedTasks.find(task => task.isActive);
-                if (activeTask) {
-                    setActiveTaskId(activeTask.id);
-                }
-            }, []);
-
-            // Save data whenever tasks change
-            useEffect(() => {
-                localStorage.setItem('masteryTasks', JSON.stringify(tasks));
-            }, [tasks]);
-
-            // Timer logic with background support
-            useEffect(() => {
-                if (activeTaskId) {
-                    // Mark task as active
-                    setTasks(prevTasks => 
-                        prevTasks.map(task => ({
-                            ...task,
-                            isActive: task.id === activeTaskId,
-                            lastActiveTime: task.id === activeTaskId ? Date.now() : task.lastActiveTime
-                        }))
-                    );
-
-                    intervalRef.current = setInterval(() => {
-                        setTasks(prevTasks => 
-                            prevTasks.map(task => {
-                                if (task.id === activeTaskId) {
-                                    const oldHours = getHours(task.totalTime);
-                                    const newTime = task.totalTime + 1;
-                                    const newHours = getHours(newTime);
-                                    
-                                    // Check for level up
-                                    if (Math.floor(newHours / 10) > Math.floor(oldHours / 10)) {
-                                        const rank = getRank(newHours);
-                                        showLevelUpNotification(task.name, rank.name);
-                                        sendNotification('🎉 Level Up!', `${task.name}: You've reached ${rank.name}!`);
-                                    }
-                                    
-                                    return { ...task, totalTime: newTime, lastActiveTime: Date.now() };
-                                }
-                                return task;
-                            })
-                        );
-                    }, 1000);
-                } else {
-                    clearInterval(intervalRef.current);
-                    // Mark all tasks as inactive
-                    setTasks(prevTasks => 
-                        prevTasks.map(task => ({ ...task, isActive: false }))
-                    );
-                }
-
-                return () => clearInterval(intervalRef.current);
-            }, [activeTaskId]);
-
-            // Handle page visibility changes (background/foreground)
-            useEffect(() => {
-                const handleVisibilityChange = () => {
-                    if (document.hidden && activeTaskId) {
-                        // Store the time when going to background
-                        const currentTime = Date.now();
-                        localStorage.setItem('backgroundTime', currentTime.toString());
-                        localStorage.setItem('backgroundTaskId', activeTaskId.toString());
-                    } else if (!document.hidden) {
-                        // Calculate time spent in background
-                        const backgroundTime = localStorage.getItem('backgroundTime');
-                        const backgroundTaskId = localStorage.getItem('backgroundTaskId');
-                        
-                        if (backgroundTime && backgroundTaskId && activeTaskId === parseInt(backgroundTaskId)) {
-                            const timeSpent = Math.floor((Date.now() - parseInt(backgroundTime)) / 1000);
-                            if (timeSpent > 0) {
-                                setTasks(prevTasks => 
-                                    prevTasks.map(task => 
-                                        task.id === parseInt(backgroundTaskId)
-                                            ? { ...task, totalTime: task.totalTime + timeSpent }
-                                            : task
-                                    )
-                                );
-                            }
-                        }
-                        
-                        localStorage.removeItem('backgroundTime');
-                        localStorage.removeItem('backgroundTaskId');
-                    }
+        // Task Management
+        function addTask() {
+            const taskName = document.getElementById('task-input').value.trim();
+            if (taskName) {
+                const newTask = {
+                    id: Date.now(),
+                    name: taskName,
+                    icon: selectedIcon,
+                    totalTime: 0,
+                    createdDate: new Date().toISOString()
                 };
+                tasks.push(newTask);
+                saveTasks();
+                renderTasks();
+                hideAddTaskModal();
+                triggerHaptic('light');
+            }
+        }
 
-                document.addEventListener('visibilitychange', handleVisibilityChange);
-                return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-            }, [activeTaskId]);
-
-            const formatTime = (seconds) => {
-                const hours = Math.floor(seconds / 3600);
-                const minutes = Math.floor((seconds % 3600) / 60);
-                const secs = seconds % 60;
-                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            };
-
-            const getHours = (seconds) => Math.floor(seconds / 3600);
-
-            const getRank = (hours) => {
-                for (let i = RANK_SYSTEM.length - 1; i >= 0; i--) {
-                    if (hours >= RANK_SYSTEM[i].min) {
-                        const level = Math.floor(hours / 10) + 1;
-                        const rankName = RANK_SYSTEM[i].name;
-                        return { 
-                            name: hours >= 10000 ? 'Master' : `${rankName} ${Math.min(level, 1000)}`,
-                            color: RANK_SYSTEM[i].color
-                        };
-                    }
-                }
-                return { name: 'Novice 1', color: '#6b7280' };
-            };
-
-            const getTimeSinceCreated = (createdDate) => {
-                const now = new Date();
-                const created = new Date(createdDate);
-                const diffTime = Math.abs(now - created);
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) return 'Today';
-                if (diffDays === 1) return '1 day ago';
-                if (diffDays < 30) return `${diffDays} days ago`;
-                if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-                return `${Math.floor(diffDays / 365)} years ago`;
-            };
-
-            const showLevelUpNotification = (taskName, rankName) => {
-                triggerHaptic('success');
-                setNotification(`🎉 Level Up! ${taskName}: ${rankName}!`);
-                setTimeout(() => setNotification(null), 4000);
-            };
-
-            const addTask = () => {
-                if (newTaskName.trim()) {
-                    const newTask = {
-                        id: Date.now(),
-                        name: newTaskName.trim(),
-                        icon: selectedIcon,
-                        totalTime: 0,
-                        createdDate: new Date().toISOString(),
-                        isActive: false
-                    };
-                    setTasks([...tasks, newTask]);
-                    setNewTaskName('');
-                    setShowAddTask(false);
-                    setSelectedIcon('Clock');
-                    triggerHaptic('light');
-                }
-            };
-
-            const toggleTimer = (taskId) => {
-                triggerHaptic('medium');
-                
+        function deleteTask(taskId) {
+            if (confirm('Are you sure you want to delete this task? All progress will be lost.')) {
+                tasks = tasks.filter(task => task.id !== taskId);
                 if (activeTaskId === taskId) {
-                    setActiveTaskId(null);
-                } else {
-                    setActiveTaskId(taskId);
+                    stopTimer();
                 }
-            };
+                saveTasks();
+                renderTasks();
+                triggerHaptic('light');
+            }
+        }
 
-            const deleteTask = (taskId) => {
-                if (confirm('Are you sure you want to delete this task? All progress will be lost.')) {
-                    setTasks(tasks.filter(task => task.id !== taskId));
-                    if (activeTaskId === taskId) {
-                        setActiveTaskId(null);
-                    }
-                    triggerHaptic('light');
-                }
-            };
-
-            const getProgressToNextLevel = (hours) => {
-                const currentLevel = Math.floor(hours / 10);
-                const nextLevelHours = (currentLevel + 1) * 10;
-                const progressHours = hours - (currentLevel * 10);
-                return (progressHours / 10) * 100;
-            };
-
-            return (
-                <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%)', color: 'white' }}>
-                    {/* Install Prompt */}
-                    {showInstallPrompt && !isInstalled && (
-                        <InstallPrompt 
-                            onInstall={handleInstall}
-                            onDismiss={() => setShowInstallPrompt(false)}
-                        />
-                    )}
-
-                    {/* Notification Prompt */}
-                    {showNotificationPrompt && (
-                        <NotificationPrompt 
-                            onEnable={enableNotifications}
-                            onDismiss={() => setShowNotificationPrompt(false)}
-                        />
-                    )}
-
-                    {/* Header */}
-                    <div style={{ 
-                        background: 'rgba(0, 0, 0, 0.2)', 
-                        backdropFilter: 'blur(10px)', 
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)', 
-                        padding: '16px',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 100
-                    }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ 
-                                    width: '40px', 
-                                    height: '40px', 
-                                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', 
-                                    borderRadius: '12px', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    fontSize: '20px'
-                                }}>
-                                    🏆
+        // UI Functions
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (tasks.length === 0) {
+                emptyState.classList.remove('hidden');
+                container.innerHTML = '';
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            container.innerHTML = tasks.map(task => {
+                const hours = getHours(task.totalTime);
+                const rank = getRank(hours);
+                const progress = getProgressToNextLevel(hours);
+                const isActive = activeTaskId === task.id;
+                
+                return `
+                    <div class="task-card">
+                        <div class="task-header">
+                            <div class="task-info">
+                                <div class="task-icon ${isActive ? 'active' : 'inactive'}">
+                                    ${TASK_ICONS[task.icon]}
                                 </div>
                                 <div>
-                                    <h1 style={{ 
-                                        fontSize: '24px', 
-                                        fontWeight: 'bold', 
-                                        background: 'linear-gradient(135deg, #a855f7, #ec4899)',
-                                        WebkitBackgroundClip: 'text',
-                                        WebkitTextFillColor: 'transparent',
-                                        margin: 0
-                                    }}>
-                                        Mastery
-                                    </h1>
-                                    <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
-                                        Track your 10,000 hours
-                                    </p>
+                                    <h3 class="task-name">${task.name}</h3>
+                                    <div class="task-meta">
+                                        <span>📅</span>
+                                        <span>Started ${getTimeSinceCreated(task.createdDate)}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setShowAddTask(true)}
-                                style={{ 
-                                    width: '48px', 
-                                    height: '48px', 
-                                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)', 
-                                    border: 'none',
-                                    borderRadius: '12px', 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)',
-                                    transition: 'all 0.2s',
-                                    fontSize: '24px'
-                                }}
-                                onTouchStart={(e) => e.target.style.transform = 'scale(0.95)'}
-                                onTouchEnd={(e) => e.target.style.transform = 'scale(1)'}
-                            >
-                                ➕
+                            <button class="delete-button" onclick="deleteTask(${task.id})">✕</button>
+                        </div>
+                        
+                        <div class="task-stats">
+                            <span class="time-display">${formatTime(task.totalTime)}</span>
+                            <div class="rank-info">
+                                <div class="rank-name" style="color: ${rank.color}">${rank.name}</div>
+                                <div class="hours-count">${hours.toLocaleString()}/10,000 hours</div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="task-footer">
+                            <span class="next-level-text">${(10 - (hours % 10)).toFixed(1)}h to next level</span>
+                            <button class="play-button ${isActive ? 'active' : 'inactive'}" onclick="toggleTimer(${task.id})">
+                                ${isActive ? '⏸️' : '▶️'}
                             </button>
                         </div>
                     </div>
+                `;
+            }).join('');
+        }
 
-                    {/* Notification */}
-                    {notification && (
-                        <div style={{
-                            position: 'fixed',
-                            top: '100px',
-                            left: '16px',
-                            right: '16px',
-                            background: 'linear-gradient(135deg, #10b981, #059669)',
-                            padding: '16px',
-                            borderRadius: '12px',
-                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
-                            zIndex: 1000,
-                            animation: 'slideDown 0.3s ease-out'
-                        }}>
-                            <p style={{ textAlign: 'center', fontWeight: '600', margin: 0 }}>{notification}</p>
-                        </div>
-                    )}
+        function showAddTaskModal() {
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.getElementById('task-input').value = '';
+            selectedIcon = 'Clock';
+            renderIconGrid();
+            setTimeout(() => {
+                document.getElementById('task-input').focus();
+            }, 100);
+        }
 
-                    {/* Tasks List */}
-                    <div style={{ padding: '16px', paddingBottom: '100px' }}>
-                        {tasks.length === 0 ? (
-                            <div style={{ textAlign: 'center', paddingTop: '80px', paddingBottom: '80px' }}>
-                                <div style={{ fontSize: '64px', marginBottom: '16px' }}>⏰</div>
-                                <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#9ca3af', marginBottom: '8px' }}>No Tasks Yet</h3>
-                                <p style={{ color: '#6b7280' }}>Add your first task to start your journey to mastery!</p>
-                            </div>
-                        ) : (
-                            tasks.map(task => {
-                                const hours = getHours(task.totalTime);
-                                const rank = getRank(hours);
-                                const progress = getProgressToNextLevel(hours);
-                                const isActive = activeTaskId === task.id;
+        function hideAddTaskModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
 
-                                return (
-                                    <div key={task.id} style={{
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        backdropFilter: 'blur(10px)',
-                                        borderRadius: '16px',
-                                        padding: '24px',
-                                        marginBottom: '16px',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                <div style={{
-                                                    width: '48px',
-                                                    height: '48px',
-                                                    background: isActive ? 'linear-gradient(135deg, #10b981, #059669)' : 'rgba(139, 92, 246, 0.2)',
-                                                    borderRadius: '12px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '24px'
-                                                }}>
-                                                    {TASK_ICONS[task.icon]}
-                                                </div>
-                                                <div>
-                                                    <h3 style={{ fontSize: '18px', fontWeight: '600', margin: 0, marginBottom: '4px' }}>{task.name}</h3>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: '#9ca3af' }}>
-                                                        <span>📅</span>
-                                                        <span>Started {getTimeSinceCreated(task.createdDate)}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => deleteTask(task.id)}
-                                                style={{
-                                                    background: 'none',
-                                                    border: 'none',
-                                                    color: '#9ca3af',
-                                                    fontSize: '20px',
-                                                    cursor: 'pointer',
-                                                    padding: '4px'
-                                                }}
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
+        function renderIconGrid() {
+            const grid = document.getElementById('icon-grid');
+            grid.innerHTML = Object.keys(TASK_ICONS).map(iconKey => `
+                <button class="icon-option ${selectedIcon === iconKey ? 'selected' : 'unselected'}" 
+                        onclick="selectIcon('${iconKey}')">
+                    ${TASK_ICONS[iconKey]}
+                </button>
+            `).join('');
+        }
 
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                            <span style={{ fontSize: '32px', fontWeight: 'bold', fontFamily: 'monospace' }}>
-                                                {formatTime(task.totalTime)}
-                                            </span>
-                                            <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontSize: '14px', fontWeight: '600', color: rank.color }}>
-                                                    {rank.name}
-                                                </div>
-                                                <div style={{ fontSize: '12px', color: '#9ca3af' }}>
-                                                    {hours.toLocaleString()}/10,000 hours
-                                                </div>
-                                            </div>
-                                        </div>
+        function selectIcon(iconKey) {
+            selectedIcon = iconKey;
+            renderIconGrid();
+        }
 
-                                        {/* Progress Bar */}
-                                        <div style={{ width: '100%', height: '8px', background: '#374151', borderRadius: '4px', marginBottom: '12px', overflow: 'hidden' }}>
-                                            <div 
-                                                style={{
-                                                    width: `${Math.min(progress, 100)}%`,
-                                                    height: '100%',
-                                                    background: 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                                                    borderRadius: '4px',
-                                                    transition: 'width 0.3s ease'
-                                                }}
-                                            />
-                                        </div>
+        // PWA Installation
+        function dismissInstallPrompt() {
+            document.getElementById('install-prompt').classList.add('hidden');
+        }
 
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '12px', color: '#9ca3af' }}>
-                                                {(10 - (hours % 10)).toFixed(1)}h to next level
-                                            </span>
-                                            <button
-                                                onClick={() => toggleTimer(task.id)}
-                                                style={{
-                                                    width: '48px',
-                                                    height: '48px',
-                                                    background: isActive ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #10b981, #059669)',
-                                                    border: 'none',
-                                                    borderRadius: '12px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    cursor: 'pointer',
-                                                    boxShadow: `0 4px 15px ${isActive ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`,
-                                                    transition: 'all 0.2s',
-                                                    fontSize: '20px'
-                                                }}
-                                                onTouchStart={(e) => e.target.style.transform = 'scale(0.95)'}
-                                                onTouchEnd={(e) => e.target.style.transform = 'scale(1)'}
-                                            >
-                                                {isActive ? '⏸️' : '▶️'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })
-                        )}
-                    </div>
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    triggerHaptic('success');
+                }
+                deferredPrompt = null;
+            }
+            dismissInstallPrompt();
+        }
 
-                    {/* Add Task Modal */}
-                    {showAddTask && (
-                        <div style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            background: 'rgba(0, 0, 0, 0.5)',
-                            backdropFilter: 'blur(5px)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: '16px',
-                            zIndex: 1000
-                        }}>
-                            <div style={{
-                                background: '#1f2937',
-                                borderRadius: '16px',
-                                padding: '24px',
-                                width: '100%',
-                                maxWidth: '400px',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
-                                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
-                            }}>
-                                <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px', margin: 0 }}>Add New Task</h2>
-                                
-                                <input
-                                    type="text"
-                                    placeholder="Task name..."
-                                    value={newTaskName}
-                                    onChange={(e) => setNewTaskName(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        background: '#374151',
-                                        border: '1px solid #4b5563',
-                                        borderRadius: '12px',
-                                        padding: '16px',
-                                        fontSize: '16px',
-                                        color: 'white',
-                                        marginBottom: '16px',
-                                        outline: 'none',
-                                        boxSizing: 'border-box'
-                                    }}
-                                    autoFocus
-                                />
+        // Event Listeners
+        document.getElementById('task-input').addEventListener('input', function() {
+            const button = document.getElementById('add-task-button');
+            button.disabled = !this.value.trim();
+        });
 
-                                <p style={{ fontSize: '14px', color: '#9ca3af', marginBottom: '12px', margin: 0 }}>Choose an icon:</p>
-                                <div style={{
-                                    display: 'grid',
-                                    gridTemplateColumns: 'repeat(7, 1fr)',
-                                    gap: '8px',
-                                    marginBottom: '24px'
-                                }}>
-                                    {Object.keys(TASK_ICONS).map(iconKey => (
-                                        <button
-                                            key={iconKey}
-                                            onClick={() => setSelectedIcon(iconKey)}
-                                            style={{
-                                                width: '40px',
-                                                height: '40px',
-                                                background: selectedIcon === iconKey ? '#8b5cf6' : '#374151',
-                                                border: selectedIcon === iconKey ? '2px solid #a855f7' : '2px solid transparent',
-                                                borderRadius: '8px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                fontSize: '20px'
-                                            }}
-                                        >
-                                            {TASK_ICONS[iconKey]}
-                                        </button>
-                                    ))}
-                                </div>
+        document.getElementById('task-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim()) {
+                addTask();
+            }
+        });
 
-                                <div style={{ display: 'flex', gap: '12px' }}>
-                                    <button
-                                        onClick={() => setShowAddTask(false)}
-                                        style={{
-                                            flex: 1,
-                                            background: '#374151',
-                                            border: 'none',
-                                            borderRadius: '12px',
-                                            padding: '16px',
-                                            color: 'white',
-                                            fontSize: '16px',
-                                            fontWeight: '600',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s'
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={addTask}
-                                        disabled={!newTaskName.trim()}
-                                        style={{
-                                            flex: 1,
-                                            background: !newTaskName.trim() ? '#6b7280' : 'linear-gradient(135deg, #8b5cf6, #ec4899)',
-                                            border: 'none',
-                                            borderRadius: '12px',
-                                            padding: '16px',
-                                            color: 'white',
-                                            fontSize: '16px',
-                                            fontWeight: '600',
-                                            cursor: !newTaskName.trim() ? 'not-allowed' : 'pointer',
-                                            opacity: !newTaskName.trim() ? 0.5 : 1,
-                                            transition: 'all 0.2s'
-                                        }}
-                                    >
-                                        Add Task
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
+        // PWA Events
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            setTimeout(() => {
+                if (!window.matchMedia('(display-mode: standalone)').matches) {
+                    document.getElementById('install-prompt').classList.remove('hidden');
+                }
+            }, 3000);
+        });
 
-        ReactDOM.render(<MasteryApp />, document.getElementById('root'));
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            setTimeout(() => {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showNotification('🔔 Notifications enabled!');
+                    }
+                });
+            }, 5000);
+        }
+
+        // Handle visibility changes for background timing
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && activeTaskId) {
+                localStorage.setItem('backgroundTime', Date.now().toString());
+                localStorage.setItem('backgroundTaskId', activeTaskId.toString());
+            } else if (!document.hidden) {
+                const backgroundTime = localStorage.getItem('backgroundTime');
+                const backgroundTaskId = localStorage.getItem('backgroundTaskId');
+                
+                if (backgroundTime && backgroundTaskId && activeTaskId === parseInt(backgroundTaskId)) {
+                    const timeSpent = Math.floor((Date.now() - parseInt(backgroundTime)) / 1000);
+                    if (timeSpent > 0) {
+                        const task = tasks.find(t => t.id === parseInt(backgroundTaskId));
+                        if (task) {
+                            task.totalTime += timeSpent;
+                            saveTasks();
+                            renderTasks();
+                        }
+                    }
+                }
+                
+                localStorage.removeItem('backgroundTime');
+                localStorage.removeItem('backgroundTaskId');
+            }
+        });
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTasks();
+            renderIconGrid();
+        });
     </script>
 </body>
 </html>
