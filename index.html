@@ -196,9 +196,26 @@
         .task-meta {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 8px;
             font-size: 14px;
             color: #9ca3af;
+            flex-wrap: wrap;
+        }
+        
+        .streak-badge {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .streak-badge.broken {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
         }
         
         .delete-button {
@@ -471,6 +488,12 @@
             .container {
                 padding: 0;
             }
+            
+            .task-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
         }
     </style>
 </head>
@@ -631,6 +654,88 @@
             }
         }
 
+        // Date utility functions
+        function getDateString(date = new Date()) {
+            return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+        }
+
+        function getDaysBetween(date1, date2) {
+            const oneDay = 24 * 60 * 60 * 1000;
+            const firstDate = new Date(date1);
+            const secondDate = new Date(date2);
+            return Math.round(Math.abs((firstDate - secondDate) / oneDay));
+        }
+
+        // Streak calculation functions
+        function updateStreak(task) {
+            const today = getDateString();
+            const yesterday = getDateString(new Date(Date.now() - 24 * 60 * 60 * 1000));
+            
+            // Initialize streak data if not exists
+            if (!task.streakData) {
+                task.streakData = {
+                    currentStreak: 0,
+                    longestStreak: 0,
+                    lastActiveDate: null,
+                    activeDates: []
+                };
+            }
+
+            // Check if task was already active today
+            if (task.streakData.lastActiveDate === today) {
+                return; // Already counted for today
+            }
+
+            // Mark today as active
+            task.streakData.lastActiveDate = today;
+            if (!task.streakData.activeDates.includes(today)) {
+                task.streakData.activeDates.push(today);
+            }
+
+            // Calculate streak
+            if (task.streakData.activeDates.includes(yesterday)) {
+                // Continue streak
+                task.streakData.currentStreak += 1;
+            } else {
+                // Start new streak
+                task.streakData.currentStreak = 1;
+            }
+
+            // Update longest streak
+            if (task.streakData.currentStreak > task.streakData.longestStreak) {
+                task.streakData.longestStreak = task.streakData.currentStreak;
+            }
+
+            // Show streak notification
+            if (task.streakData.currentStreak > 1) {
+                showNotification(`🔥 ${task.streakData.currentStreak} day streak for ${task.name}!`);
+                triggerHaptic('success');
+            }
+        }
+
+        function checkStreakStatus(task) {
+            if (!task.streakData) {
+                return { current: 0, longest: 0, isActive: false };
+            }
+
+            const today = getDateString();
+            const yesterday = getDateString(new Date(Date.now() - 24 * 60 * 60 * 1000));
+            
+            // Check if streak is broken
+            if (task.streakData.lastActiveDate !== today && task.streakData.lastActiveDate !== yesterday) {
+                // Streak is broken - reset current streak but keep longest
+                if (task.streakData.currentStreak > 0) {
+                    task.streakData.currentStreak = 0;
+                }
+            }
+
+            return {
+                current: task.streakData.currentStreak,
+                longest: task.streakData.longestStreak,
+                isActive: task.streakData.lastActiveDate === today
+            };
+        }
+
         // Storage Functions
         function saveTasks() {
             localStorage.setItem('masteryTasks', JSON.stringify(tasks));
@@ -640,6 +745,12 @@
             const saved = localStorage.getItem('masteryTasks');
             if (saved) {
                 tasks = JSON.parse(saved);
+                
+                // Update streak status for all tasks
+                tasks.forEach(task => {
+                    checkStreakStatus(task);
+                });
+                
                 renderTasks();
             }
         }
@@ -651,6 +762,14 @@
             }
             
             activeTaskId = taskId;
+            const task = tasks.find(t => t.id === taskId);
+            
+            // Update streak when starting timer
+            if (task) {
+                updateStreak(task);
+                saveTasks();
+            }
+            
             intervalId = setInterval(() => {
                 const task = tasks.find(t => t.id === taskId);
                 if (task) {
@@ -700,7 +819,13 @@
                     name: taskName,
                     icon: selectedIcon,
                     totalTime: 0,
-                    createdDate: new Date().toISOString()
+                    createdDate: new Date().toISOString(),
+                    streakData: {
+                        currentStreak: 0,
+                        longestStreak: 0,
+                        lastActiveDate: null,
+                        activeDates: []
+                    }
                 };
                 tasks.push(newTask);
                 saveTasks();
@@ -740,6 +865,7 @@
                 const rank = getRank(hours);
                 const progress = getProgressToNextLevel(hours);
                 const isActive = activeTaskId === task.id;
+                const streakStatus = checkStreakStatus(task);
                 
                 return `
                     <div class="task-card">
@@ -751,8 +877,15 @@
                                 <div>
                                     <h3 class="task-name">${task.name}</h3>
                                     <div class="task-meta">
-                                        <span>📅</span>
-                                        <span>Started ${getTimeSinceCreated(task.createdDate)}</span>
+                                        <span>📅 Started ${getTimeSinceCreated(task.createdDate)}</span>
+                                        <div class="streak-badge ${streakStatus.current === 0 ? 'broken' : ''}">
+                                            🔥 ${streakStatus.current} day streak
+                                        </div>
+                                        ${streakStatus.longest > streakStatus.current ? `
+                                            <div class="streak-badge broken">
+                                                🏆 Best: ${streakStatus.longest} days
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
