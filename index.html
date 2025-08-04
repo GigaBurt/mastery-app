@@ -656,20 +656,34 @@
 
         // Date utility functions
         function getDateString(date = new Date()) {
-            return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+            // Use local timezone, not UTC
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`; // Returns YYYY-MM-DD in local timezone
+        }
+
+        function getYesterday() {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            return getDateString(yesterday);
         }
 
         function getDaysBetween(date1, date2) {
             const oneDay = 24 * 60 * 60 * 1000;
-            const firstDate = new Date(date1);
-            const secondDate = new Date(date2);
+            const firstDate = new Date(date1 + 'T00:00:00'); // Ensure we compare at midnight
+            const secondDate = new Date(date2 + 'T00:00:00');
             return Math.round(Math.abs((firstDate - secondDate) / oneDay));
+        }
+
+        function isConsecutiveDay(date1, date2) {
+            return getDaysBetween(date1, date2) === 1;
         }
 
         // Streak calculation functions
         function updateStreak(task) {
             const today = getDateString();
-            const yesterday = getDateString(new Date(Date.now() - 24 * 60 * 60 * 1000));
+            const yesterday = getYesterday();
             
             // Initialize streak data if not exists
             if (!task.streakData) {
@@ -692,12 +706,15 @@
                 task.streakData.activeDates.push(today);
             }
 
-            // Calculate streak
-            if (task.streakData.activeDates.includes(yesterday)) {
-                // Continue streak
+            // Calculate streak based on consecutive days
+            if (task.streakData.currentStreak === 0) {
+                // Starting first streak
+                task.streakData.currentStreak = 1;
+            } else if (task.streakData.activeDates.includes(yesterday)) {
+                // Continue existing streak
                 task.streakData.currentStreak += 1;
             } else {
-                // Start new streak
+                // Gap in streak - start new streak
                 task.streakData.currentStreak = 1;
             }
 
@@ -710,6 +727,10 @@
             if (task.streakData.currentStreak > 1) {
                 showNotification(`🔥 ${task.streakData.currentStreak} day streak for ${task.name}!`);
                 triggerHaptic('success');
+            } else if (task.streakData.currentStreak === 1 && task.streakData.longestStreak > 1) {
+                // Starting a new streak after a break
+                showNotification(`🔥 New streak started for ${task.name}!`);
+                triggerHaptic('light');
             }
         }
 
@@ -719,12 +740,18 @@
             }
 
             const today = getDateString();
-            const yesterday = getDateString(new Date(Date.now() - 24 * 60 * 60 * 1000));
+            const yesterday = getYesterday();
             
-            // Check if streak is broken
-            if (task.streakData.lastActiveDate !== today && task.streakData.lastActiveDate !== yesterday) {
-                // Streak is broken - reset current streak but keep longest
-                if (task.streakData.currentStreak > 0) {
+            // Check if streak should be broken due to missed days
+            if (task.streakData.lastActiveDate && 
+                task.streakData.lastActiveDate !== today && 
+                task.streakData.lastActiveDate !== yesterday) {
+                
+                // Calculate days missed
+                const daysMissed = getDaysBetween(task.streakData.lastActiveDate, today);
+                
+                if (daysMissed > 1) {
+                    // Streak is broken - reset current streak but keep longest
                     task.streakData.currentStreak = 0;
                 }
             }
@@ -732,8 +759,38 @@
             return {
                 current: task.streakData.currentStreak,
                 longest: task.streakData.longestStreak,
-                isActive: task.streakData.lastActiveDate === today
+                isActive: task.streakData.lastActiveDate === today,
+                daysSinceActive: task.streakData.lastActiveDate ? getDaysBetween(task.streakData.lastActiveDate, today) : 0
             };
+        }
+
+        // Check all tasks for streak updates at app load
+        function checkAllStreaksForNewDay() {
+            const today = getDateString();
+            const lastCheckDate = localStorage.getItem('lastStreakCheck');
+            
+            if (lastCheckDate !== today) {
+                // It's a new day - check all streaks
+                tasks.forEach(task => {
+                    checkStreakStatus(task);
+                });
+                
+                // Save that we've checked today
+                localStorage.setItem('lastStreakCheck', today);
+                saveTasks();
+                
+                // Show daily reminder if user has tasks but no activity today
+                const hasTasksWithoutTodayActivity = tasks.some(task => {
+                    const streakStatus = checkStreakStatus(task);
+                    return !streakStatus.isActive && task.streakData && task.streakData.currentStreak > 0;
+                });
+                
+                if (hasTasksWithoutTodayActivity) {
+                    setTimeout(() => {
+                        showNotification('🌅 New day! Keep your streaks alive by practicing today!');
+                    }, 2000);
+                }
+            }
         }
 
         // Storage Functions
@@ -745,6 +802,9 @@
             const saved = localStorage.getItem('masteryTasks');
             if (saved) {
                 tasks = JSON.parse(saved);
+                
+                // Check for new day and update streaks
+                checkAllStreaksForNewDay();
                 
                 // Update streak status for all tasks
                 tasks.forEach(task => {
@@ -1027,6 +1087,43 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadTasks();
             renderIconGrid();
+            
+            // Set up midnight checker - runs every minute to catch midnight
+            setInterval(() => {
+                const now = new Date();
+                const lastMidnightCheck = localStorage.getItem('lastMidnightCheck');
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                
+                // Check if we just passed midnight (00:00 to 00:05)
+                if (currentHour === 0 && currentMinute < 5) {
+                    const today = getDateString();
+                    if (lastMidnightCheck !== today) {
+                        console.log('🕛 Midnight detected - checking streaks');
+                        
+                        // Update all streak statuses for the new day
+                        tasks.forEach(task => {
+                            checkStreakStatus(task);
+                        });
+                        
+                        saveTasks();
+                        renderTasks();
+                        
+                        // Mark that we've processed this midnight
+                        localStorage.setItem('lastMidnightCheck', today);
+                        
+                        // Show new day notification if user has active streaks at risk
+                        const activeStreaks = tasks.filter(task => {
+                            const streakStatus = checkStreakStatus(task);
+                            return streakStatus.current > 0 && !streakStatus.isActive;
+                        });
+                        
+                        if (activeStreaks.length > 0) {
+                            showNotification(`🌅 New day! You have ${activeStreaks.length} streak(s) to maintain today!`);
+                        }
+                    }
+                }
+            }, 60000); // Check every minute
         });
     </script>
 </body>
